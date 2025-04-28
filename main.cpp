@@ -6,6 +6,52 @@
 
 using namespace std;
 
+enum class ActionWithCar: int
+ {
+   Buy,
+   Sell,
+   Burn,
+
+    None
+ };
+
+ class ActionStrategy
+ {
+ public:
+   virtual ~ActionStrategy() {}
+   virtual void PrintData() = 0;
+ };
+
+ class BuyStrategy : public ActionStrategy
+ {
+   void PrintData() { cout << "Congratulations on your purchase"; }
+ };
+
+ class SellStrategy : public ActionStrategy
+ {
+   void PrintData() { cout << "You sold the car"; }
+ };
+
+ class BurnStrategy : public ActionStrategy
+ {
+   void PrintData() { cout << "Why did you burn the car?"; }
+ };
+
+
+ActionStrategy* CreateActionStrategy(ActionWithCar dooingCar)
+ {
+   switch(dooingCar)
+   {
+     case ActionWithCar::Buy: return new BuyStrategy;
+     case ActionWithCar::Sell: return new SellStrategy;
+     case ActionWithCar::Burn: return new BurnStrategy;
+
+     default: return nullptr;
+   }
+ }
+
+
+
 class EuropeCars
 {
 protected:
@@ -13,11 +59,35 @@ protected:
     string country;
     int start_year;
 
+private:
+     ActionStrategy* AnythingCar;
+
 public:
     EuropeCars(const string& brand, const string& country, int start_year)
-        : brand(brand), country(country), start_year(start_year) {}
+        : brand(brand), country(country), start_year(start_year), AnythingCar(nullptr) {}
 
-    virtual ~EuropeCars() {}
+    virtual ~EuropeCars()
+
+    {
+        if(AnythingCar != nullptr) delete AnythingCar;
+    }
+
+    virtual void PrintData()
+    {
+       if(AnythingCar == nullptr)
+       {
+           cout << "Do nothing! ";
+           return;
+       }
+       else
+       {
+           AnythingCar -> PrintData();
+       }
+    }
+    void InitCar(ActionStrategy* dooingCar)
+       {
+           AnythingCar = dooingCar;
+       }
 
     virtual void output_parametrs_1() const
     {
@@ -56,7 +126,10 @@ private:
 
 public:
     Skoda_Superb(const string& brand, const string& country, int start_year, const string& color)
-        : EuropeCars(brand, country, start_year), color(color) {}
+        : EuropeCars(brand, country, start_year), color(color)
+        {
+            InitCar(CreateActionStrategy(ActionWithCar::Sell));
+        }
 
     void output_parametrs() const override
     {
@@ -80,7 +153,10 @@ private:
 
 public:
     Audi_TT(const string& brand, const string& country, int start_year, const string& platform)
-        : EuropeCars(brand, country, start_year), platform(platform) {}
+        : EuropeCars(brand, country, start_year), platform(platform)
+        {
+            InitCar(CreateActionStrategy(ActionWithCar::Buy));
+        }
 
     void output_parametrs() const override
     {
@@ -103,7 +179,10 @@ private:
 
 public:
     Seat_Leon_FR(const string& brand, const string& country, int start_year, bool diesel_engine)
-        : EuropeCars(brand, country, start_year), diesel_engine(diesel_engine) {}
+        : EuropeCars(brand, country, start_year), diesel_engine(diesel_engine)
+        {
+            InitCar(CreateActionStrategy(ActionWithCar::Burn));
+        }
 
     void output_parametrs() const override
     {
@@ -142,6 +221,9 @@ void traverseContainer(Iterator& it)
     {
         it.GetCurrent()->output_parametrs();
         it.GetCurrent()->year_del_2();
+        it.GetCurrent()->PrintData();
+        cout<<endl;
+        cout<<endl;
     }
 }
 
